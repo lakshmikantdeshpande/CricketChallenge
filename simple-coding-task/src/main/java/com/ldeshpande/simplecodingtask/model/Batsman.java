@@ -5,6 +5,7 @@ import com.ldeshpande.simplecodingtask.exception.MissingProbabilityException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
 @Getter
 @Setter
 @EqualsAndHashCode(of = "name")
+@ToString
 public class Batsman {
   private String name;
   private Map<Score, Integer> probabilityMap = new HashMap<>();

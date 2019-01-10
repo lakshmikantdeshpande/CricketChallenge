@@ -1,5 +1,6 @@
 package com.ldeshpande.simplecodingtask.utils;
 
+import com.google.common.io.Resources;
 import com.ldeshpande.simplecodingtask.enums.Score;
 import com.ldeshpande.simplecodingtask.exception.ParsingException;
 import com.ldeshpande.simplecodingtask.exception.ServiceException;
@@ -11,11 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.EnumMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 @UtilityClass
 @Slf4j
@@ -25,17 +25,19 @@ public class ParserUtil {
   /*
     This method reads player score probabilities from input file
    */
-  public static Match parseMatchConfiguration(int remainingBalls) {
+  public static Match parseMatchConfiguration(int remainingBalls, int scoreTarget) {
     Match match = new Match();
     match.setRemainingBalls(remainingBalls);
-    List<Batsman> batsmen = readBatsmensConfiguration();
+    match.setScoreTarget(scoreTarget);
+    Queue<Batsman> batsmen = readBatsmensConfiguration();
     match.setBatsmen(batsmen);
     return match;
   }
 
-  private List<Batsman> readBatsmensConfiguration() {
-    List<Batsman> batsmen = new ArrayList<>(4);
-    try (FileReader fileReader = new FileReader(PROBABILITIES_INPUT);
+  private Queue<Batsman> readBatsmensConfiguration() {
+    Queue<Batsman> batsmen = new LinkedList<>();
+    final String filePath = Resources.getResource(PROBABILITIES_INPUT).getPath();
+    try (FileReader fileReader = new FileReader(filePath);
          CSVReader csvReader = new CSVReader(fileReader)) {
       boolean isHeader = true;
       String[] record;
@@ -45,9 +47,14 @@ public class ParserUtil {
         } else {
           Batsman batsman = new Batsman();
           batsman.setName(record[0]);
-          Map<Score, Integer> probabilityMap = new HashMap<>();
+          Map<Score, Integer> probabilityMap = new EnumMap<>(Score.class);
           int[] index = {1};
-          Arrays.stream(Score.values()).forEach(score -> probabilityMap.put(score, index[0]++));
+          String[] finalRecord = record;
+          Score.getValues().forEach(score -> {
+            String token = finalRecord[index[0]++].trim();
+            Integer probability = Integer.parseInt(token.substring(0, token.length() - 1));
+            probabilityMap.put(score, probability);
+          });
           batsman.setProbabilityMap(probabilityMap);
           batsmen.add(batsman);
         }
